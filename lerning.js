@@ -14,13 +14,5 @@
 // const result = Math.max(num1, num2, num3)
 // console.log(result)
 
-let num1min = 0
-let num1max = 4
-let num2min = 0
-let num2max = 5
-
-for (let i = num2min; i < num2max; i ++) {
-    for (let j = num1min; j < num1max; j ++) {
-        console.log({num1min: j, num1max: num1max, num2min: i, num2max: num2max})
-    }
-}
+let num = Math.floor(Math.random() * 236)
+console.log(num)

@@ -7,8 +7,7 @@
   "main": "pathToMain",
   "dependencies": {},
   "scripts": {
-    "predeploy": "npm run build",
-    "deploy": "gh-pages -d build"
+    "deploy": "gh-pages -d 3D_Engine"
   },
   "devDependencies": {
     "gh-pages": "^5.0.0"

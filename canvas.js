@@ -34,22 +34,22 @@ const Line = (x1, y1, x2, y2) => {
 }
 
 // create lines of the triangles 
-const Triangle = (x0, y0, x1, y1, x2, y2) => {
+const Triangle = (x0, y0, x1, y1, x2, y2, dp) => {
 
+    // set value to cyan and lightFactor with input of 0 the darkest and 1 the lightest
+    let r = 90
+    let g = 229
+    let b = 255
+    r *= dp
+    g *= dp
+    b *= dp
+    // drawing the triangles
+    ctx.fillStyle = `rgb( ${r},${g},${b})`
     ctx.beginPath()
     ctx.moveTo(x0, y0);
     ctx.lineTo(x1 ,y1);
-    ctx.stroke()
-    
-    ctx.beginPath();
-    ctx.moveTo(x1, y1);
-    ctx.lineTo(x2 ,y2);
-    ctx.stroke()
-
-    ctx.beginPath();
-    ctx.moveTo(x2, y2);
-    ctx.lineTo(x0 ,y0);
-    ctx.stroke()
+    ctx.lineTo(x2, y2)
+    ctx.fill()
 
 }
 
@@ -98,7 +98,7 @@ class Vec3 {
 // camera
 let camera = new Vec3().three
 
-// cross product is normal, line1 and line2 are vectors
+// cross product is normal, line1 and line2 are vectors, in_triangle is for displaying pixels, light_direction is light
 let line1 = new Vec3().three
 let line2 = new Vec3().three
 let line3 = new Vec3().three
@@ -119,6 +119,11 @@ matrixProj[2][2] = ZFar / (ZFar - ZNear)
 matrixProj[3][2] = (-ZFar * ZNear) / (ZFar - ZNear)
 matrixProj[2][3] = 1.0
 matrixProj[3][3] = 0
+
+// matrixes for 
+let matrixRotZ = new Matrix().mat
+let matrixRotX = new Matrix().mat
+
 
 // check if pixel is inside triangle
 const Edge_cross = (v1, v2, p) => {
@@ -174,7 +179,6 @@ function Update() {
     ftheta += tim
     
     // rotation Z
-    let matrixRotZ = new Matrix().mat
     matrixRotZ[0][0] = Math.cos(ftheta)
     matrixRotZ[0][1] = Math.sin(ftheta)
     matrixRotZ[1][0] = -Math.sin(ftheta)
@@ -183,7 +187,6 @@ function Update() {
     matrixRotZ[3][3] = 1
     
     // rotation X
-    let matrixRotX = new Matrix().mat
     matrixRotX[0][0] = 1
     matrixRotX[1][1] = Math.cos(ftheta * 0.5)
     matrixRotX[1][2] = Math.sin(ftheta  * 0.5)
@@ -212,10 +215,6 @@ function Update() {
         triTranslated[2].z = triRotatedZX2.z + 3
         
         // 2 vectors for cross product that is named normal
-        // line0.x = triTranslated[0].x - triTranslated[0].x
-        // line0.y = triTranslated[0].y - triTranslated[0].y
-        // line0.z = triTranslated[].z - triTranslated[0].z
-
         line1.x = triTranslated[0].x - triTranslated[1].x
         line1.y = triTranslated[0].y - triTranslated[1].y
         line1.z = triTranslated[0].z - triTranslated[1].z
@@ -234,9 +233,20 @@ function Update() {
     
         //if the side should be displayed, calculated by the dot product
         if ((normal.x * (triTranslated[0].x - camera.x) + 
-            normal.y * (triTranslated[0].y - camera.y) + 
-            normal.z * (triTranslated[0].z - camera.z)) < 0)
-            {let triangleVertices = Matrix4Object(triTranslated[0], matrixProj)
+                normal.y * (triTranslated[0].y - camera.y) + 
+                normal.z * (triTranslated[0].z - camera.z)) < 0)
+        {   
+            //light and normalizing light
+            let light_direction = {x: 0, y: 0, z: -1}
+            let nmlz = Math.sqrt(light_direction.x * light_direction.x + 
+                                light_direction.y * light_direction.y + 
+                                light_direction.z * light_direction.z)
+            light_direction.x /= nmlz; light_direction.y /= nmlz; light_direction.z /= nmlz;
+
+            // calkulating the dot product of light
+            let dp = light_direction.x * normal.x + light_direction.y * normal.y + light_direction.z * normal.z
+            
+            let triangleVertices = Matrix4Object(triTranslated[0], matrixProj)
             let triangleVertices2 = Matrix4Object(triTranslated[1], matrixProj)
             let triangleVertices3 = Matrix4Object(triTranslated[2], matrixProj)
         
@@ -257,7 +267,9 @@ function Update() {
             triangleVertices3.x *= 0.5 * window.innerWidth;
             triangleVertices3.y *= 0.5 * window.innerHeight;
 
-            // 
+
+            //filling those triangles with blue color, because of low code quality done by ctx
+            /*
             // finding max and min of x and y for filling triangles
             let max_x = Math.round(Math.max(triangleVertices.x, triangleVertices2.x, triangleVertices3.x))
             let max_y = Math.round(Math.max(triangleVertices.y, triangleVertices2.y, triangleVertices3.y))
@@ -282,18 +294,15 @@ function Update() {
                         FillPoint(in_triangle.x, in_triangle.y)
                     }
                 }
-            }
+            } */
 
             // draw just point onto screen of vertices
             Vertices(triangleVertices.x, triangleVertices.y)
             Vertices(triangleVertices2.x, triangleVertices2.y)
             Vertices(triangleVertices3.x, triangleVertices3.y)
         
-            Triangle(triangleVertices.x, triangleVertices.y, triangleVertices2.x, triangleVertices2.y, triangleVertices3.x, triangleVertices3.y)
-        
-            // console.log whole triangle vertices in javascript list
-            let triangle = [triangleVertices, triangleVertices2, triangleVertices3]
-    }}
+            Triangle(triangleVertices.x, triangleVertices.y, triangleVertices2.x, triangleVertices2.y, triangleVertices3.x, triangleVertices3.y, dp)
+        }}
 }
 
 
